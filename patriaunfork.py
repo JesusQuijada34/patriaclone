@@ -83,13 +83,13 @@ def verificar_enlace(user_id):
     if es_ignorado(user_id):
         return True
     try:
-        canal_status = bot.get_chat_member(f"@{CANAL_USERNAME}", user_id)
-        grupo_status = bot.get_chat_member(f"@{GRUPO_USERNAME}", user_id)
+        canal_status = bot.get_chat_member(CANAL_ID, user_id)
+        grupo_status = bot.get_chat_member(GRUPO_ID, user_id)
         # Solo si no está baneado y es miembro (no kicked ni left)
         if (canal_status.status in ["member", "administrator", "creator"]) and (grupo_status.status in ["member", "administrator", "creator"]):
             return True
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"Error verificando enlace: {e}")
     return False
 
 def mensaje_verificacion():
@@ -106,7 +106,7 @@ def acceso_requerido(func):
     def wrapper(message, *args, **kwargs):
         user_id = message.from_user.id
         if es_baneado(user_id):
-            bot.reply_to(message, "🚫 Has sido baneado del bot, grupo y canal.")
+            bot.send_message(message.chat.id, "🚫 Has sido baneado del bot, grupo y canal.")
             return
         if not verificar_enlace(user_id):
             bot.send_message(
@@ -123,7 +123,7 @@ def acceso_requerido(func):
     return wrapper
 
 # --- UTILIDADES DE LEAKS Y OSINT ---
-# (Sin cambios en esta sección)
+
 def extraer_userpass(texto):
     patron = re.compile(r'([a-zA-Z0-9_.-]+)[\s:|]+([a-zA-Z0-9@#_.\-!$%&*]+)')
     return list(set(patron.findall(texto)))
@@ -253,13 +253,18 @@ def deep_domain_scan(domain):
             resultado += f"- `{s}`\n"
     else:
         resultado += "\n🌐 *No se encontraron subdominios vivos.*\n"
-    js_endpoints = buscar_js_endpoints(f"https://{domain}")
-    if js_endpoints:
-        resultado += f"\n🧩 *Endpoints JS encontrados:* ({len(js_endpoints)})\n"
-        for e in js_endpoints[:10]:
-            resultado += f"- `{e}`\n"
-    else:
-        resultado += "\n🧩 *No se encontraron endpoints JS.*\n"
+
+    try:
+        js_endpoints = buscar_js_endpoints(f"https://{domain}")
+        if js_endpoints:
+            resultado += f"\n🧩 *Endpoints JS encontrados:* ({len(js_endpoints)})\n"
+            for e in js_endpoints[:10]:
+                resultado += f"- `{e}`\n"
+        else:
+            resultado += "\n🧩 *No se encontraron endpoints JS.*\n"
+    except Exception:
+        resultado += "\n🧩 *Error al buscar endpoints JS.*\n"
+
     gh_leaks = buscar_github(domain)
     if gh_leaks:
         resultado += f"\n💻 *Resultados en GitHub:* ({len(gh_leaks)})\n"
@@ -267,6 +272,7 @@ def deep_domain_scan(domain):
             resultado += f"- {g}\n"
     else:
         resultado += "\n💻 *No se encontraron resultados en GitHub.*\n"
+
     resultado += "\n🛡️ *Escaneo de puertos (top 10):*\n"
     common_ports = [21, 22, 23, 25, 53, 80, 110, 143, 443, 3306]
     try:
@@ -276,12 +282,13 @@ def deep_domain_scan(domain):
             s.settimeout(1)
             try:
                 s.connect((ip, port))
-                resultado += f"- `{port}`: *Abierto*\n"
+                resultado += f"- `{port}`: ✅ *Abierto*\n"
             except Exception:
-                resultado += f"- `{port}`: Cerrado\n"
+                resultado += f"- `{port}`: ❌ Cerrado\n"
             s.close()
     except Exception:
-        resultado += "- No se pudo resolver el dominio para escaneo de puertos.\n"
+        resultado += "- ❌ No se pudo resolver el dominio para escaneo de puertos.\n"
+
     leaks = []
     if os.path.exists(LEAKS_FILE):
         with open(LEAKS_FILE, "r") as f:
@@ -295,6 +302,8 @@ def deep_domain_scan(domain):
             resultado += f"- `{str(l)[:200]}`\n"
     else:
         resultado += "\n🗄️ *No se encontraron leaks locales relacionados.*\n"
+
+    resultado += "\n🔎 *Escaneo completado.*"
     return resultado
 
 # --- COMANDOS TELEGRAM CON TECLADO INLINE Y FORMATO EXCELENTE ---
@@ -303,7 +312,7 @@ def deep_domain_scan(domain):
 def cmd_start(message):
     user_id = message.from_user.id
     if es_baneado(user_id):
-        bot.reply_to(message, "🚫 Has sido baneado del bot, grupo y canal.")
+        bot.send_message(message.chat.id, "🚫 Has sido baneado del bot, grupo y canal.")
         return
     if not verificar_enlace(user_id):
         bot.send_message(
@@ -330,28 +339,57 @@ def cmd_start(message):
         types.InlineKeyboardButton("Teléfono", callback_data="telefono"),
         types.InlineKeyboardButton("Ficha", callback_data="ficha"),
     )
-    bot.send_message(
-        message.chat.id,
-        "👋 *Bienvenido a Patria Clone Bot (modo OSINT/Leaks/DeepScan).* \n\n"
-        "Selecciona una opción o usa los comandos:\n"
-        "• `/deepdomain <dominio>` - Búsqueda profunda de dominio\n"
-        "• `/leak <texto>` - Analiza texto crudo, extrae USER:PASS, URLs, etc\n"
-        "• `/github <query>` - Busca código en GitHub\n"
-        "• `/js <url>` - Busca endpoints en JS de una web\n"
-        "• `/subdominios <dominio>` - Busca subdominios vivos\n"
-        "• `/dni <dni>` - Busca el DNI en leaks locales\n"
-        "• `/informe <dni>` - Informe completo por DNI\n"
-        "• `/telefono <número>` - Busca titulares por teléfono\n"
-        "• `/ficha <dni|telefono>` - Ficha + mensajes\n"
-        "\n*Solo para fines educativos y de auditoría.*\n"
-        "\nTips:\n"
-        "```\n"
-        "• Usa /deepdomain para obtener TODO sobre un dominio.\n"
-        "• Usa /leak para analizar dumps o leaks de texto.\n"
-        "• Usa los botones para facilitar tu OSINT.\n"
-        "```",
-        reply_markup=markup
-    )
+
+    # Enviar imagen de bienvenida si existe
+    splash_path = "assets/splash.png"
+    if os.path.exists(splash_path):
+        with open(splash_path, 'rb') as photo:
+            bot.send_photo(
+                message.chat.id,
+                photo,
+                caption="👋 *Bienvenido a Patria Clone Bot (modo OSINT/Leaks/DeepScan).* \n\n"
+                "Selecciona una opción o usa los comandos:\n"
+                "• `/deepdomain <dominio>` - Búsqueda profunda de dominio\n"
+                "• `/leak <texto>` - Analiza texto crudo, extrae USER:PASS, URLs, etc\n"
+                "• `/github <query>` - Busca código en GitHub\n"
+                "• `/js <url>` - Busca endpoints en JS de una web\n"
+                "• `/subdominios <dominio>` - Busca subdominios vivos\n"
+                "• `/dni <dni>` - Busca el DNI en leaks locales\n"
+                "• `/informe <dni>` - Informe completo por DNI\n"
+                "• `/telefono <número>` - Busca titulares por teléfono\n"
+                "• `/ficha <dni|telefono>` - Ficha + mensajes\n"
+                "\n*Solo para fines educativos y de auditoría.*\n"
+                "\nTips:\n"
+                "```\n"
+                "• Usa /deepdomain para obtener TODO sobre un dominio.\n"
+                "• Usa /leak para analizar dumps o leaks de texto.\n"
+                "• Usa los botones para facilitar tu OSINT.\n"
+                "```",
+                reply_markup=markup
+            )
+    else:
+        bot.send_message(
+            message.chat.id,
+            "👋 *Bienvenido a Patria Clone Bot (modo OSINT/Leaks/DeepScan).* \n\n"
+            "Selecciona una opción o usa los comandos:\n"
+            "• `/deepdomain <dominio>` - Búsqueda profunda de dominio\n"
+            "• `/leak <texto>` - Analiza texto crudo, extrae USER:PASS, URLs, etc\n"
+            "• `/github <query>` - Busca código en GitHub\n"
+            "• `/js <url>` - Busca endpoints en JS de una web\n"
+            "• `/subdominios <dominio>` - Busca subdominios vivos\n"
+            "• `/dni <dni>` - Busca el DNI en leaks locales\n"
+            "• `/informe <dni>` - Informe completo por DNI\n"
+            "• `/telefono <número>` - Busca titulares por teléfono\n"
+            "• `/ficha <dni|telefono>` - Ficha + mensajes\n"
+            "\n*Solo para fines educativos y de auditoría.*\n"
+            "\nTips:\n"
+            "```\n"
+            "• Usa /deepdomain para obtener TODO sobre un dominio.\n"
+            "• Usa /leak para analizar dumps o leaks de texto.\n"
+            "• Usa los botones para facilitar tu OSINT.\n"
+            "```",
+            reply_markup=markup
+        )
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
@@ -402,143 +440,223 @@ def callback_query(call):
 def cmd_deepdomain(message):
     dominio = message.text.partition(' ')[2].strip()
     if not dominio:
-        bot.reply_to(message, "Envía el dominio después de `/deepdomain dominio.com`")
+        bot.send_message(message.chat.id, "Envía el dominio después de `/deepdomain dominio.com`")
         return
+
     bot.send_chat_action(message.chat.id, "typing")
+    bot.send_message(message.chat.id, f"🔍 *Iniciando escaneo profundo de:* `{dominio}`\n\n⏳ Esto puede tomar unos segundos...")
+
     resultado = deep_domain_scan(dominio)
-    bot.reply_to(message, resultado[:4000])
+
+    # Dividir el mensaje si es demasiado largo
+    if len(resultado) > 4000:
+        partes = [resultado[i:i+4000] for i in range(0, len(resultado), 4000)]
+        for parte in partes:
+            bot.send_message(message.chat.id, parte, parse_mode="Markdown")
+    else:
+        bot.send_message(message.chat.id, resultado, parse_mode="Markdown")
 
 @bot.message_handler(commands=['leak'])
 @acceso_requerido
 def cmd_leak(message):
     texto = message.text.partition(' ')[2].strip()
     if not texto:
-        bot.reply_to(message, "Envía el texto crudo después de `/leak <texto>`")
+        bot.send_message(message.chat.id, "Envía el texto crudo después de `/leak <texto>`")
         return
-    resumen = ""
+
+    bot.send_chat_action(message.chat.id, "typing")
+
+    resumen = "🔍 *Analizando texto...*\n\n"
     userpass = extraer_userpass(texto)
     if userpass:
         resumen += f"👤 *USER:PASS encontrados* ({len(userpass)}):\n"
         for u, p in userpass[:10]:
             resumen += f"- `{u}:{p}`\n"
+        if len(userpass) > 10:
+            resumen += f"- ... y {len(userpass) - 10} más\n"
+    else:
+        resumen += "👤 *No se encontraron USER:PASS*\n"
+
     urls = extraer_urls(texto)
     if urls:
         resumen += f"\n🔗 *URLs únicas* ({len(urls)}):\n"
         for u in urls[:10]:
             resumen += f"- `{u}`\n"
-    resumen += "\n*Líneas únicas:*\n"
-    resumen += "```\n" + quitar_lineas_repetidas(texto)[:500] + "\n```"
+        if len(urls) > 10:
+            resumen += f"- ... y {len(urls) - 10} más\n"
+    else:
+        resumen += "\n🔗 *No se encontraron URLs*\n"
+
+    lineas_unicas = quitar_lineas_repetidas(texto)
+    resumen += "\n📝 *Líneas únicas:*\n"
+    resumen += "```\n" + lineas_unicas[:500] + "\n```"
+
+    if len(lineas_unicas) > 500:
+        resumen += f"\n*Nota:* Mostrando solo las primeras 500 líneas de {len(lineas_unicas)}"
+
     guardar_leak({"texto": texto, "userpass": userpass, "urls": urls, "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")})
-    bot.reply_to(message, resumen[:4000])
+
+    # Dividir el mensaje si es demasiado largo
+    if len(resumen) > 4000:
+        partes = [resumen[i:i+4000] for i in range(0, len(resumen), 4000)]
+        for parte in partes:
+            bot.send_message(message.chat.id, parte, parse_mode="Markdown")
+    else:
+        bot.send_message(message.chat.id, resumen, parse_mode="Markdown")
 
 @bot.message_handler(commands=['github'])
 @acceso_requerido
 def cmd_github(message):
     query = message.text.partition(' ')[2].strip()
     if not query:
-        bot.reply_to(message, "Envía la búsqueda después de `/github <query>`")
+        bot.send_message(message.chat.id, "Envía la búsqueda después de `/github <query>`")
         return
+
+    bot.send_chat_action(message.chat.id, "typing")
+    bot.send_message(message.chat.id, f"🔍 *Buscando en GitHub:* `{query}`")
+
     resultados = buscar_github(query)
     if resultados:
-        msg = "*Resultados GitHub:*\n"
+        msg = f"💻 *Resultados GitHub para* `{query}`:\n\n"
         for r in resultados:
             msg += f"- {r}\n"
-        bot.reply_to(message, msg)
+        bot.send_message(message.chat.id, msg)
     else:
-        bot.reply_to(message, "No se encontraron resultados en GitHub.")
+        bot.send_message(message.chat.id, f"❌ *No se encontraron resultados en GitHub para* `{query}`")
 
 @bot.message_handler(commands=['js'])
 @acceso_requerido
 def cmd_js(message):
     url = message.text.partition(' ')[2].strip()
     if not url:
-        bot.reply_to(message, "Envía la URL después de `/js <url>`")
+        bot.send_message(message.chat.id, "Envía la URL después de `/js <url>`")
         return
+
+    bot.send_chat_action(message.chat.id, "typing")
+    bot.send_message(message.chat.id, f"🔍 *Buscando endpoints JS en:* `{url}`")
+
     endpoints = buscar_js_endpoints(url)
     if endpoints:
-        msg = "*Endpoints JS encontrados:*\n"
+        msg = f"🧩 *Endpoints JS encontrados en* `{url}`:\n\n"
         for e in endpoints[:10]:
             msg += f"- `{e}`\n"
-        bot.reply_to(message, msg)
+        if len(endpoints) > 10:
+            msg += f"- ... y {len(endpoints) - 10} más\n"
+        bot.send_message(message.chat.id, msg)
     else:
-        bot.reply_to(message, "No se encontraron endpoints JS.")
+        bot.send_message(message.chat.id, f"❌ *No se encontraron endpoints JS en* `{url}`")
 
 @bot.message_handler(commands=['subdominios'])
 @acceso_requerido
 def cmd_subdominios(message):
     dominio = message.text.partition(' ')[2].strip()
     if not dominio:
-        bot.reply_to(message, "Envía el dominio después de `/subdominios <dominio>`")
+        bot.send_message(message.chat.id, "Envía el dominio después de `/subdominios <dominio>`")
         return
+
+    bot.send_chat_action(message.chat.id, "typing")
+    bot.send_message(message.chat.id, f"🔍 *Buscando subdominios para:* `{dominio}`")
+
     vivos = buscar_subdominios(dominio)
     if vivos:
-        msg = f"*Subdominios vivos para* `{dominio}`:\n"
+        msg = f"🌐 *Subdominios vivos para* `{dominio}`:\n\n"
         for v in vivos[:10]:
             msg += f"- `{v}`\n"
-        bot.reply_to(message, msg)
+        if len(vivos) > 10:
+            msg += f"- ... y {len(vivos) - 10} más\n"
+        bot.send_message(message.chat.id, msg)
     else:
-        bot.reply_to(message, "No se encontraron subdominios vivos.")
+        bot.send_message(message.chat.id, f"❌ *No se encontraron subdominios vivos para* `{dominio}`")
 
 @bot.message_handler(commands=['dni'])
 @acceso_requerido
 def cmd_dni(message):
     dni = message.text.partition(' ')[2].strip()
     if not dni:
-        bot.reply_to(message, "Envía el DNI después de `/dni <dni>`")
+        bot.send_message(message.chat.id, "Envía el DNI después de `/dni <dni>`")
         return
+
+    bot.send_chat_action(message.chat.id, "typing")
+    bot.send_message(message.chat.id, f"🔍 *Buscando DNI:* `{dni}`")
+
     resultados = buscar_dni_databreach(dni)
     if resultados:
-        msg = f"*Encontrado en {len(resultados)} leaks:*\n"
+        msg = f"🆔 *DNI encontrado en {len(resultados)} leaks:*\n\n"
         for r in resultados[:5]:
             msg += f"- `{str(r)[:200]}`\n"
-        bot.reply_to(message, msg)
+        if len(resultados) > 5:
+            msg += f"- ... y {len(resultados) - 5} más\n"
+        bot.send_message(message.chat.id, msg)
     else:
-        bot.reply_to(message, "No se encontró el DNI en leaks locales.")
+        bot.send_message(message.chat.id, f"❌ *No se encontró el DNI* `{dni}` *en leaks locales*")
 
 @bot.message_handler(commands=['informe'])
 @acceso_requerido
 def cmd_informe(message):
     dni = message.text.partition(' ')[2].strip()
     if not dni:
-        bot.reply_to(message, "Envía el DNI después de `/informe <dni>`")
+        bot.send_message(message.chat.id, "Envía el DNI después de `/informe <dni>`")
         return
+
+    bot.send_chat_action(message.chat.id, "typing")
+    bot.send_message(message.chat.id, f"📄 *Generando informe para DNI:* `{dni}`")
+
     informe = informe_completo_dni(dni)
-    bot.reply_to(message, informe[:4000])
+
+    if len(informe) > 4000:
+        partes = [informe[i:i+4000] for i in range(0, len(informe), 4000)]
+        for parte in partes:
+            bot.send_message(message.chat.id, parte, parse_mode="Markdown")
+    else:
+        bot.send_message(message.chat.id, informe, parse_mode="Markdown")
 
 @bot.message_handler(commands=['telefono'])
 @acceso_requerido
 def cmd_telefono(message):
     telefono = message.text.partition(' ')[2].strip()
     if not telefono:
-        bot.reply_to(message, "Envía el número después de `/telefono <número>`")
+        bot.send_message(message.chat.id, "Envía el número después de `/telefono <número>`")
         return
+
+    bot.send_chat_action(message.chat.id, "typing")
+    bot.send_message(message.chat.id, f"🔍 *Buscando teléfono:* `{telefono}`")
+
     resultados = buscar_titular_telefono(telefono)
     if resultados:
-        msg = f"*Teléfono encontrado en {len(resultados)} leaks:*\n"
+        msg = f"📞 *Teléfono encontrado en {len(resultados)} leaks:*\n\n"
         for r in resultados[:5]:
             msg += f"- `{str(r)[:200]}`\n"
-        bot.reply_to(message, msg)
+        if len(resultados) > 5:
+            msg += f"- ... y {len(resultados) - 5} más\n"
+        bot.send_message(message.chat.id, msg)
     else:
-        bot.reply_to(message, "No se encontró el teléfono en leaks locales.")
+        bot.send_message(message.chat.id, f"❌ *No se encontró el teléfono* `{telefono}` *en leaks locales*")
 
 @bot.message_handler(commands=['ficha'])
 @acceso_requerido
 def cmd_ficha(message):
     arg = message.text.partition(' ')[2].strip()
     if not arg:
-        bot.reply_to(message, "Envía el DNI o teléfono después de `/ficha <dni|telefono>`")
+        bot.send_message(message.chat.id, "Envía el DNI o teléfono después de `/ficha <dni|telefono>`")
         return
-    ficha = ""
+
+    bot.send_chat_action(message.chat.id, "typing")
+
     if arg.isdigit() and len(arg) >= 6:
+        bot.send_message(message.chat.id, f"🕵️ *Generando ficha para DNI:* `{arg}`")
         ficha = ficha_estafador(dni=arg)
     else:
+        bot.send_message(message.chat.id, f"🕵️ *Generando ficha para teléfono:* `{arg}`")
         ficha = ficha_estafador(telefono=arg)
-    bot.reply_to(message, ficha[:4000])
+
+    if len(ficha) > 4000:
+        partes = [ficha[i:i+4000] for i in range(0, len(ficha), 4000)]
+        for parte in partes:
+            bot.send_message(message.chat.id, parte, parse_mode="Markdown")
+    else:
+        bot.send_message(message.chat.id, ficha, parse_mode="Markdown")
 
 # --- CONTROL DE MENSAJES EN GRUPO: ACTIVACIÓN Y BANEO POR "CALLAR" ---
-# El bot solo responde a mensajes en grupo si empiezan con "patriaunfork"
-# Si el usuario dice "callate", "shh", "shhh", "shhhh", "sh", "cállate", "silencio", etc, lo banea
-
 CALLAR_PALABRAS = ["callate", "shh", "shhh", "shhhh", "sh", "cállate", "silencio", "cállese", "mute", "cállate bot", "calla bot"]
 
 @bot.message_handler(func=lambda m: m.chat.type in ["group", "supergroup"])
@@ -550,21 +668,15 @@ def handler_grupo(m):
         except Exception:
             pass
         return
+
     texto = m.text or ""
-    if not texto.lower().startswith("patriaunfork"):
-        return
-    # Si el mensaje es solo "patriaunfork", mostrar ayuda
-    if texto.strip().lower() == "patriaunfork":
-        bot.reply_to(m, "👋 Escribe `patriaunfork` seguido de un comando, por ejemplo:\n"
-                        "`patriaunfork /deepdomain dominio.com`\n"
-                        "`patriaunfork /leak <texto>`\n"
-                        "Si necesitas ayuda, usa `/start` en privado.")
-        return
+
     # Si contiene palabras de callar, banear
     for palabra in CALLAR_PALABRAS:
         if palabra in texto.lower():
             try:
-                bot.reply_to(m, "🚫 Has sido baneado por intentar callar al bot.")
+                bot.send_message(m.chat.id, f"🚫 @{m.from_user.username} ha sido baneado por intentar callar al bot.",
+                                reply_to_message_id=m.message_id)
                 bot.kick_chat_member(m.chat.id, user_id)
             except Exception:
                 pass
@@ -574,49 +686,82 @@ def handler_grupo(m):
             except Exception:
                 pass
             return
-    # Ejecutar el comando si es válido
-    # Extraer el comando después de "patriaunfork"
-    comando = texto[len("patriaunfork"):].strip()
-    if comando.startswith("/"):
-        # Simular mensaje privado para reutilizar handlers
-        class FakeMessage:
-            def __init__(self, m, text):
-                self.message_id = m.message_id
-                self.from_user = m.from_user
-                self.chat = m
-                self.text = text
-        fake_msg = FakeMessage(m, comando)
+
+    # Si el mensaje es un comando, procesarlo directamente
+    if texto.startswith("/"):
+        # Crear un mensaje falso para procesar
+        fake_msg = types.Message(
+            message_id=m.message_id,
+            from_user=m.from_user,
+            date=m.date,
+            chat=m.chat,
+            content_type="text",
+            options={},
+            json_string=""
+        )
+        fake_msg.text = texto
+
         # Buscar handler adecuado
         for handler in bot.message_handlers:
             if hasattr(handler, "filters") and handler.filters:
                 if handler.filters(fake_msg):
-                    handler.function(fake_msg)
+                    try:
+                        handler.function(fake_msg)
+                    except Exception as e:
+                        bot.send_message(m.chat.id, f"❌ Error al procesar el comando: {str(e)}",
+                                        reply_to_message_id=m.message_id)
                     break
 
 def saludo_inicio():
-    admin_id = config["usuarios"].get("admin_chat_id", None)
-    if admin_id:
-        try:
-            bot.send_message(admin_id, "🤖 *El bot Patria Clone (OSINT/Leaks/DeepScan) ha sido iniciado y está en línea desde https://jesusquijada34.github.io/patriaclone.*")
-        except Exception:
-            pass
+    # Enviar mensaje a todos los usuarios registrados
+    for user_id in config["usuarios"]:
+        if user_id != "admin_chat_id":
+            try:
+                bot.send_message(user_id, "🤖 *El bot Patria Clone (OSINT/Leaks/DeepScan) ha sido iniciado y está en línea.*")
+            except Exception:
+                pass
+
+    # Enviar mensaje al canal y grupo
+    try:
+        bot.send_message(CANAL_ID, "🤖 *El bot Patria Clone (OSINT/Leaks/DeepScan) ha sido iniciado y está en línea.*")
+    except Exception:
+        pass
+
+    try:
+        bot.send_message(GRUPO_ID, "🤖 *El bot Patria Clone (OSINT/Leaks/DeepScan) ha sido iniciado y está en línea.*")
+    except Exception:
+        pass
 
 def despedida(signal_received=None, frame=None):
-    admin_id = config["usuarios"].get("admin_chat_id", None)
-    if admin_id:
-        try:
-            bot.send_message(admin_id, "👋 *El bot Patria Clone se está cerrando. ¡Hasta luego!*")
-        except Exception:
-            pass
+    # Enviar mensaje a todos los usuarios registrados
+    for user_id in config["usuarios"]:
+        if user_id != "admin_chat_id":
+            try:
+                bot.send_message(user_id, "🤖 *El bot Patria Clone (OSINT/Leaks/DeepScan) se está apagando...*")
+            except Exception:
+                pass
+
+    # Enviar mensaje al canal y grupo
+    try:
+        bot.send_message(CANAL_ID, "🤖 *El bot Patria Clone (OSINT/Leaks/DeepScan) se está apagando...*")
+    except Exception:
+        pass
+
+    try:
+        bot.send_message(GRUPO_ID, "🤖 *El bot Patria Clone (OSINT/Leaks/DeepScan) se está apagando...*")
+    except Exception:
+        pass
+
     sys.exit(0)
 
+# --- EJECUCIÓN PRINCIPAL ---
 if __name__ == "__main__":
-    print("Patria Clone Bot (OSINT/Leaks/DeepScan) iniciado. Esperando comandos en Telegram...")
-    print(f"Token: {TELEGRAM_TOKEN[:6]}... (oculto)")
-    saludo_inicio()
+    # Configurar manejo de señales para apagado elegante
     signal.signal(signal.SIGINT, despedida)
     signal.signal(signal.SIGTERM, despedida)
-    try:
-        bot.infinity_polling()
-    except (KeyboardInterrupt, SystemExit):
-        despedida()
+
+    # Enviar saludo de inicio
+    saludo_inicio()
+
+    print("🤖 Bot Patria Clone (OSINT/Leaks/DeepScan) iniciado...")
+    bot.infinity_polling()
