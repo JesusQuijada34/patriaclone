@@ -11,22 +11,22 @@ import signal
 import sys
 
 # --- CONFIGURACIÓN DE ACCESO Y CONTROL ---
-CONFIG_FILE = "patriaosint_config.json"
-LEAKS_FILE = "leaks_locales.json"
+CONFIG_FILE = "patriaunfork.json"
+LEAKS_FILE = "leaks.json"
 
 # IDs de usuarios que pueden ignorar la verificación de grupo/canal (separados por coma)
 IGNORAR_VERIFICACION_IDS = [int(x) for x in os.environ.get("IGNORAR_VERIFICACION_IDS", "").split(",") if x.strip().isdigit()]
 
 # IDs y user/links de grupo/canal requeridos
-CANAL_ID = -1002501042552
-GRUPO_ID = -1002806046486
-CANAL_USERNAME = "jq34_channel"
-GRUPO_USERNAME = "jq34_group"
+CANAL_ID = -100
+GRUPO_ID = -100
+CANAL_USERNAME = ""
+GRUPO_USERNAME = ""
 CANAL_LINK = f"https://t.me/{CANAL_USERNAME}"
 GRUPO_LINK = f"https://t.me/{GRUPO_USERNAME}"
 
 # Para banear usuarios (guardar en archivo para persistencia)
-BANEADOS_FILE = "baneados.json"
+BANEADOS_FILE = "userbanned.json"
 def cargar_baneados():
     if os.path.exists(BANEADOS_FILE):
         with open(BANEADOS_FILE, "r") as f:
